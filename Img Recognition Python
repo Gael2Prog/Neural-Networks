@@ -1,0 +1,84 @@
+import random
+import pandas as pd
+from PIL import Image
+import requests
+from io import BytesIO
+import numpy as np
+
+urlIn = []
+urlOut = []
+def urlAddIn(url,out):
+  urlIn.append(requests.get(url)) 
+  urlOut.append(out)
+urlAddIn("https://hips.hearstapps.com/ghk.h-cdn.co/assets/16/08/gettyimages-530330473.jpg?crop=0.659xw:0.990xh;0.123xw,0.00779xh&resize=980:*",[0,1])
+urlAddIn("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTYNG_PRe95sb_dKJgKkfMR__GxrbLUis36yQ&s",[0,1])
+urlAddIn("https://thumbor.forbes.com/thumbor/fit-in/900x510/https://www.forbes.com/advisor/wp-content/uploads/2023/07/top-20-small-dog-breeds.jpeg.jpg",[0,1])
+urlAddIn("https://cdn.britannica.com/79/232779-050-6B0411D7/German-Shepherd-dog-Alsatian.jpg",[0,1])
+urlAddIn("https://media.4-paws.org/7/b/8/4/7b84da50b67c8c39b9deb0d6581efa3309960ed6/VIER%20PFOTEN_2019-12-13_209-2001x2000-600x600.jpg",[1,0]) 
+urlAddIn("https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/Cat_August_2010-4.jpg/1200px-Cat_August_2010-4.jpg",[1,0])
+urlAddIn("https://cdn.mos.cms.futurecdn.net/ASHH5bDmsp6wnK6mEfZdcU-1200-80.jpg",[0,1])
+urlAddIn("https://media.istockphoto.com/id/1443562748/photo/cute-ginger-cat.jpg?s=612x612&w=0&k=20&c=vvM97wWz-hMj7DLzfpYRmY2VswTqcFEKkC437hxm3Cg=",[1,0])
+urlAddIn("https://hips.hearstapps.com/ghk.h-cdn.co/assets/17/30/bernese-mountain-dog.jpg?crop=1.00xw:0.668xh;0,0.252xh&resize=640:*",[0,1])
+urlAddIn("https://cdn.britannica.com/70/234870-050-D4D024BB/Orange-colored-cat-yawns-displaying-teeth.jpg",[1,0])
+urlAddIn("https://media.istockphoto.com/id/497004261/photo/meow.jpg?b=1&s=170667a&w=0&k=20&c=PNTHd33a_t50W9-WljHCWKY8STjA8KMNMKnAvYYH0xY=",[1,0])
+urlAddIn("https://images.pexels.com/photos/1170986/pexels-photo-1170986.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500",[1,0])
+urlAddIn("https://cdn.theatlantic.com/thumbor/vDZCdxF7pRXmZIc5vpB4pFrWHKs=/559x0:2259x1700/1080x1080/media/img/mt/2017/06/shutterstock_319985324/original.jpg",[1,0])
+img = Image.open(BytesIO(urlIn[1].content))
+scale = 64
+
+def scaleImg(img, scale):
+    width, height = img.size
+    if width < height:
+        newWidth = scale
+        newHeight = int(height / (width / scale))
+        cropTop = (newHeight - scale) // 2
+        cropBottom = cropTop + scale
+        crop = (0, cropTop, scale, cropBottom)
+    else:
+        newHeight = scale
+        newWidth = int(width / (height / scale))
+        cropLeft = (newWidth - scale) // 2
+        cropRight = cropLeft + scale
+        crop = (cropLeft, 0, cropRight, scale)
+    imResize = img.resize((newWidth, newHeight))
+    imCrop = imResize.crop(crop)
+    imCrop = imCrop.convert('RGB')
+    return imCrop
+
+def rgb_of_pixel(imCrop, x, y, inputs):
+    r, g, b = imCrop.getpixel((x, y))
+    inputs = np.append(inputs, [r, g, b])
+    return inputs
+
+img = scaleImg(img, scale)
+inputs = np.array([])
+
+for i in range(scale):
+    for j in range(scale):
+        inputs = rgb_of_pixel(img, i, j, inputs)
+print("Image values aquired!")
+
+layers = 16
+neuronsL = 128
+outputN = 2
+weights = np.array([[[random.uniform(0, 1) for _ in range(len(inputs))] for _ in range(neuronsL)] for _ in range(layers)])
+
+
+current = [0.0]
+
+def relu(x):
+  return max(0, x)
+
+for a in range(layers):
+    if a == layers - 1:
+        neuronsL = outputN   
+    current = np.zeros(neuronsL)
+    for b in range(neuronsL):
+      for c in range(len(inputs)):
+        current[b] = inputs[c] * weights[a][b][c]
+        current[b] = relu(current[b])
+        current[b] /= (255 * len(inputs) / 3)
+
+    inputs = current
+
+print("Output:", inputs)
