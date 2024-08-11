@@ -23,7 +23,7 @@ urlAddIn("https://cdn.britannica.com/70/234870-050-D4D024BB/Orange-colored-cat-y
 urlAddIn("https://media.istockphoto.com/id/497004261/photo/meow.jpg?b=1&s=170667a&w=0&k=20&c=PNTHd33a_t50W9-WljHCWKY8STjA8KMNMKnAvYYH0xY=",[1,0])
 urlAddIn("https://images.pexels.com/photos/1170986/pexels-photo-1170986.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500",[1,0])
 urlAddIn("https://cdn.theatlantic.com/thumbor/vDZCdxF7pRXmZIc5vpB4pFrWHKs=/559x0:2259x1700/1080x1080/media/img/mt/2017/06/shutterstock_319985324/original.jpg",[1,0])
-img = Image.open(BytesIO(urlIn[1].content))
+img = Image.open(BytesIO(urlIn[4].content))
 scale = 64
 
 def scaleImg(img, scale):
@@ -61,24 +61,47 @@ print("Image values aquired!")
 layers = 16
 neuronsL = 128
 outputN = 2
-weights = np.array([[[random.uniform(0, 1) for _ in range(len(inputs))] for _ in range(neuronsL)] for _ in range(layers)])
-
-
-current = [0.0]
+input_size = len(inputs)
 
 def relu(x):
-  return max(0, x)
+  return np.maximum(0, x)
+def relu_derivative(x):
+    return np.where(x > 0, 1, 0)
+def sigmoid(x):
+  return 1 / (1 + np.exp(-x))
 
-for a in range(layers):
-    if a == layers - 1:
-        neuronsL = outputN   
-    current = np.zeros(neuronsL)
-    for b in range(neuronsL):
-      for c in range(len(inputs)):
-        current[b] = inputs[c] * weights[a][b][c]
-        current[b] = relu(current[b])
-        current[b] /= (255 * len(inputs) / 3)
+weights_input_hidden = np.random.randn(len(inputs), layers*neuronsL-outputN)
+weights_hidden_output = np.random.randn(layers*neuronsL-outputN, outputN)
+learning_rate = 0.1
 
-    inputs = current
+def forward_propagation(inputs):
+    hidden_layer_input = np.dot(inputs, weights_input_hidden)
+    hidden_layer_output = relu(hidden_layer_input)
+    output_layer_input = np.dot(hidden_layer_output, weights_hidden_output)
+    output = output_layer_input
+    output = sigmoid(output)
+    return hidden_layer_output, output
 
-print("Output:", inputs)
+def backpropagation(inputs, hidden_layer_output, output, target):
+    global weights_hidden_output, weights_input_hidden
+    output_error = target - output
+    output_delta = output_error * relu_derivative(output)
+
+    hidden_error = np.dot(output_delta, weights_hidden_output.T)
+    hidden_delta = hidden_error * relu_derivative(hidden_layer_output)
+
+    weights_hidden_output += np.dot(hidden_layer_output.reshape(-1,1), output_delta.reshape(1,-1)) * learning_rate
+    weights_input_hidden += np.dot(inputs.reshape(-1,1), hidden_delta.reshape(1,-1)) * learning_rate
+
+for epoch in range(1000):
+    target = np.array(urlOut[4])
+
+    hidden_layer_output, output = forward_propagation(inputs)
+    backpropagation(inputs, hidden_layer_output, output, target)
+
+df_input_hidden = pd.DataFrame(weights_input_hidden)
+df_hidden_output = pd.DataFrame(weights_hidden_output)
+
+#display(df_input_hidden)
+#display(df_hidden_output)
+print(output)
