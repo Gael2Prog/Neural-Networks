@@ -49,19 +49,17 @@ def rgb_of_pixel(imCrop, x, y, inputs):
     r, g, b = imCrop.getpixel((x, y))
     inputs = np.append(inputs, [r, g, b])
     return inputs
-
+img = Image.open(BytesIO(urlIn[0].content))
 img = scaleImg(img, scale)
 inputs = np.array([])
-
 for i in range(scale):
-    for j in range(scale):
-        inputs = rgb_of_pixel(img, i, j, inputs)
-print("Image values aquired!")
-
-layers = 16
-neuronsL = 128
+  for j in range(scale):
+    inputs = rgb_of_pixel(img, i, j, inputs)
+layers = 64
+neuronsL = len(inputs)
 outputN = 2
 input_size = len(inputs)
+
 
 def relu(x):
   return np.maximum(0, x)
@@ -93,8 +91,19 @@ def backpropagation(inputs, hidden_layer_output, output, target):
     weights_hidden_output += np.dot(hidden_layer_output.reshape(-1,1), output_delta.reshape(1,-1)) * learning_rate
     weights_input_hidden += np.dot(inputs.reshape(-1,1), hidden_delta.reshape(1,-1)) * learning_rate
 
-for epoch in range(1000):
-    target = np.array(urlOut[4])
+for epoch in range(100):
+    img = Image.open(BytesIO(urlIn[epoch].content))
+    img = scaleImg(img, scale)
+    inputs = np.array([])
+    for i in range(scale):
+      for j in range(scale):
+        inputs = rgb_of_pixel(img, i, j, inputs)
+    target = np.array(urlOut[epoch])
+    layers = 64
+    neuronsL = len(inputs)
+    outputN = 2
+    input_size = len(inputs)
+
 
     hidden_layer_output, output = forward_propagation(inputs)
     backpropagation(inputs, hidden_layer_output, output, target)
@@ -102,6 +111,5 @@ for epoch in range(1000):
 df_input_hidden = pd.DataFrame(weights_input_hidden)
 df_hidden_output = pd.DataFrame(weights_hidden_output)
 
-#display(df_input_hidden)
-#display(df_hidden_output)
-print(output)
+display(df_input_hidden)
+display(df_hidden_output)
