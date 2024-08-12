@@ -23,8 +23,7 @@ urlAddIn("https://cdn.britannica.com/70/234870-050-D4D024BB/Orange-colored-cat-y
 urlAddIn("https://media.istockphoto.com/id/497004261/photo/meow.jpg?b=1&s=170667a&w=0&k=20&c=PNTHd33a_t50W9-WljHCWKY8STjA8KMNMKnAvYYH0xY=",[1,0])
 urlAddIn("https://images.pexels.com/photos/1170986/pexels-photo-1170986.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500",[1,0])
 urlAddIn("https://cdn.theatlantic.com/thumbor/vDZCdxF7pRXmZIc5vpB4pFrWHKs=/559x0:2259x1700/1080x1080/media/img/mt/2017/06/shutterstock_319985324/original.jpg",[1,0])
-img = Image.open(BytesIO(urlIn[4].content))
-scale = 64
+scale = 16
 
 def scaleImg(img, scale):
     width, height = img.size
@@ -91,7 +90,7 @@ def backpropagation(inputs, hidden_layer_output, output, target):
     weights_hidden_output += np.dot(hidden_layer_output.reshape(-1,1), output_delta.reshape(1,-1)) * learning_rate
     weights_input_hidden += np.dot(inputs.reshape(-1,1), hidden_delta.reshape(1,-1)) * learning_rate
 
-for epoch in range(100):
+for epoch in range(13):
     img = Image.open(BytesIO(urlIn[epoch].content))
     img = scaleImg(img, scale)
     inputs = np.array([])
@@ -99,7 +98,7 @@ for epoch in range(100):
       for j in range(scale):
         inputs = rgb_of_pixel(img, i, j, inputs)
     target = np.array(urlOut[epoch])
-    layers = 64
+    layers = 32
     neuronsL = len(inputs)
     outputN = 2
     input_size = len(inputs)
@@ -107,9 +106,13 @@ for epoch in range(100):
 
     hidden_layer_output, output = forward_propagation(inputs)
     backpropagation(inputs, hidden_layer_output, output, target)
+    print(epoch)
 
 df_input_hidden = pd.DataFrame(weights_input_hidden)
 df_hidden_output = pd.DataFrame(weights_hidden_output)
+
+display(df_input_hidden)
+display(df_hidden_output)
 
 display(df_input_hidden)
 display(df_hidden_output)
