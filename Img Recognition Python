@@ -29,7 +29,7 @@ urlAddIn("https://cdn.britannica.com/70/234870-050-D4D024BB/Orange-colored-cat-y
 urlAddIn("https://media.istockphoto.com/id/497004261/photo/meow.jpg?b=1&s=170667a&w=0&k=20&c=PNTHd33a_t50W9-WljHCWKY8STjA8KMNMKnAvYYH0xY=",[1,0])
 urlAddIn("https://images.pexels.com/photos/1170986/pexels-photo-1170986.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500",[1,0])
 urlAddIn("https://cdn.theatlantic.com/thumbor/vDZCdxF7pRXmZIc5vpB4pFrWHKs=/559x0:2259x1700/1080x1080/media/img/mt/2017/06/shutterstock_319985324/original.jpg",[1,0])
-scale = 32
+scale = 20
 
 def scaleImg(img, scale):
     width, height = img.size
@@ -50,17 +50,19 @@ def scaleImg(img, scale):
     imCrop = imCrop.convert('RGB')
     return imCrop
 
-def rgb_of_pixel(imCrop, x, y, inputs):
-    r, g, b = imCrop.getpixel((x, y))
-    inputs = np.append(inputs, [r, g, b])
-    return inputs
+def rgb_of_pixel(imCrop, x, y):
+  global inputs 
+  r, g, b = imCrop.getpixel((x, y))
+  inputs = np.append(inputs, [r, g, b])
+  return inputs
+
 img = Image.open(BytesIO(urlIn[0].content))
 img = scaleImg(img, scale)
 inputs = np.array([])
 for i in range(scale):
   for j in range(scale):
-    inputs = rgb_of_pixel(img, i, j, inputs)
-layers = 64
+    inputs = rgb_of_pixel(img, i, j)
+layers = 32
 neuronsL = len(inputs)
 outputN = 2
 input_size = len(inputs)
@@ -73,8 +75,8 @@ def relu_derivative(x):
 def sigmoid(x):
   return 1 / (1 + np.exp(-x))
 
-weights_input_hidden = np.random.randn(len(inputs), layers*neuronsL-outputN)
-weights_hidden_output = np.random.randn(layers*neuronsL-outputN, outputN)
+weights_input_hidden = np.random.randn(len(inputs), layers*neuronsL+outputN)
+weights_hidden_output = np.random.randn(layers*neuronsL+outputN, outputN)
 learning_rate = 0.1
 
 def forward_propagation(inputs):
@@ -102,7 +104,7 @@ for epoch in range(13):
     inputs = np.array([])
     for i in range(scale):
       for j in range(scale):
-        inputs = rgb_of_pixel(img, i, j, inputs)
+        inputs = rgb_of_pixel(img, i, j)
     target = np.array(urlOut[epoch])
     layers = 32
     neuronsL = len(inputs)
@@ -118,24 +120,32 @@ for i in range(0,len(weights_hidden_output)):weights.append(weights_hidden_outpu
 
 # Get the output ↓
 
-img = scaleImg(link, scale)
-inputs = np.array([])
+img = scaleImg(Image.open(BytesIO(requests.get(link).content)), scale)
+inputs = []
 for i in range(scale):
   for j in range(scale):
-    rgb_of_pixel(img, i, j, inputs)
+    r, g, b = img.getpixel((i, j))
+    inputs.append(r)
+    inputs.append(g)
+    inputs.append(b)
 
 neuronsL = len(inputs)
 layers = 32
 outputN = 2
-current = [0]
-
-for l in range(layers):
+current = [1,2]
+for l in range(layers+1):
   for n in range(neuronsL):
-    for i in range(len(inputs)):
-      current[n]+= inputs[i]*weights[i*(n+1)*10*(l+1)*100]
     current.append(0)
+    for i in range(len(inputs)):
+      current[n]+= inputs[i]*weights[l * neuronsL + n]
   if(l==layers-1):
     neuronsL = outputN
-  inputs = current
-  current = [0]
-print("Output: ", input)
+  inputs = current[:]
+  current = []
+
+for i in range(len(inputs)):
+  inputs[i] = sigmoid(inputs[i])
+
+print("The image is ", inputs[0]*100, "% cat and ", inputs[1]*100) 
+
+print("The image is ", inputs[0]*100, "% cat and ", inputs[1]*100) 
