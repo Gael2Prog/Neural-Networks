@@ -77,7 +77,7 @@ def sigmoid(x):
 
 weights_input_hidden = np.random.randn(len(inputs), layers*neuronsL+outputN)
 weights_hidden_output = np.random.randn(layers*neuronsL+outputN, outputN)
-learning_rate = 0.1
+learning_rate = 0.01
 
 def forward_propagation(inputs):
     hidden_layer_input = np.dot(inputs, weights_input_hidden)
@@ -137,7 +137,7 @@ for l in range(layers+1):
   for n in range(neuronsL):
     current.append(0)
     for i in range(len(inputs)):
-      current[n]+= inputs[i]*weights[l * neuronsL + n]
+      current[n]+= inputs[i]*weights[l * neuronsL + n][0]
   if(l==layers-1):
     neuronsL = outputN
   inputs = current[:]
@@ -146,6 +146,4 @@ for l in range(layers+1):
 for i in range(len(inputs)):
   inputs[i] = sigmoid(inputs[i])
 
-print("The image is ", inputs[0]*100, "% cat and ", inputs[1]*100) 
-
-print("The image is ", inputs[0]*100, "% cat and ", inputs[1]*100) 
+print("The image is ", round(inputs[0]*100, 2), "% cat and ", round(inputs[1]*100, 2), "% dog.")
