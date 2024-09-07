@@ -1,4 +1,4 @@
-#Change this link for your image link ↓   
+#Change this link for your image link ↓
 
 link = "https://tvazteca.brightspotcdn.com/38/e6/7b33cdd042d5a378d56a7f81fa73/perritos-primeros-auxilios.jpg"
 
@@ -14,13 +14,13 @@ import numpy as np
 urlIn = []
 urlOut = []
 def urlAddIn(url,out):
-  urlIn.append(requests.get(url)) 
+  urlIn.append(requests.get(url))
   urlOut.append(out)
 urlAddIn("https://hips.hearstapps.com/ghk.h-cdn.co/assets/16/08/gettyimages-530330473.jpg?crop=0.659xw:0.990xh;0.123xw,0.00779xh&resize=980:*",[0,1])
 urlAddIn("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTYNG_PRe95sb_dKJgKkfMR__GxrbLUis36yQ&s",[0,1])
 urlAddIn("https://thumbor.forbes.com/thumbor/fit-in/900x510/https://www.forbes.com/advisor/wp-content/uploads/2023/07/top-20-small-dog-breeds.jpeg.jpg",[0,1])
 urlAddIn("https://cdn.britannica.com/79/232779-050-6B0411D7/German-Shepherd-dog-Alsatian.jpg",[0,1])
-urlAddIn("https://media.4-paws.org/7/b/8/4/7b84da50b67c8c39b9deb0d6581efa3309960ed6/VIER%20PFOTEN_2019-12-13_209-2001x2000-600x600.jpg",[1,0]) 
+urlAddIn("https://media.4-paws.org/7/b/8/4/7b84da50b67c8c39b9deb0d6581efa3309960ed6/VIER%20PFOTEN_2019-12-13_209-2001x2000-600x600.jpg",[1,0])
 urlAddIn("https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/Cat_August_2010-4.jpg/1200px-Cat_August_2010-4.jpg",[1,0])
 urlAddIn("https://cdn.mos.cms.futurecdn.net/ASHH5bDmsp6wnK6mEfZdcU-1200-80.jpg",[0,1])
 urlAddIn("https://media.istockphoto.com/id/1443562748/photo/cute-ginger-cat.jpg?s=612x612&w=0&k=20&c=vvM97wWz-hMj7DLzfpYRmY2VswTqcFEKkC437hxm3Cg=",[1,0])
@@ -51,7 +51,7 @@ def scaleImg(img, scale):
     return imCrop
 
 def rgb_of_pixel(imCrop, x, y):
-  global inputs 
+  global inputs
   r, g, b = imCrop.getpixel((x, y))
   inputs = np.append(inputs, [r, g, b])
   return inputs
@@ -62,7 +62,7 @@ inputs = np.array([])
 for i in range(scale):
   for j in range(scale):
     inputs = rgb_of_pixel(img, i, j)
-layers = 32
+layers = 6
 neuronsL = len(inputs)
 outputN = 2
 input_size = len(inputs)
@@ -98,15 +98,15 @@ def backpropagation(inputs, hidden_layer_output, output, target):
     weights_hidden_output += np.dot(hidden_layer_output.reshape(-1,1), output_delta.reshape(1,-1)) * learning_rate
     weights_input_hidden += np.dot(inputs.reshape(-1,1), hidden_delta.reshape(1,-1)) * learning_rate
 
-for epoch in range(13):
-    img = Image.open(BytesIO(urlIn[epoch].content))
+for epoch in range(1000):
+  for x in range(13):
+    img = Image.open(BytesIO(urlIn[x].content))
     img = scaleImg(img, scale)
     inputs = np.array([])
     for i in range(scale):
       for j in range(scale):
         inputs = rgb_of_pixel(img, i, j)
-    target = np.array(urlOut[epoch])
-    layers = 32
+    target = np.array(urlOut[x])
     neuronsL = len(inputs)
     outputN = 2
     input_size = len(inputs)
@@ -130,7 +130,6 @@ for i in range(scale):
     inputs.append(b)
 
 neuronsL = len(inputs)
-layers = 32
 outputN = 2
 current = [1,2]
 for l in range(layers+1):
