@@ -2,7 +2,7 @@
 
 link = "https://tvazteca.brightspotcdn.com/38/e6/7b33cdd042d5a378d56a7f81fa73/perritos-primeros-auxilios.jpg"
 
-
+# WARNING! A lot of GPU power required!
 
 import random
 import pandas as pd
@@ -98,7 +98,10 @@ def backpropagation(inputs, hidden_layer_output, output, target):
     weights_hidden_output += np.dot(hidden_layer_output.reshape(-1,1), output_delta.reshape(1,-1)) * learning_rate
     weights_input_hidden += np.dot(inputs.reshape(-1,1), hidden_delta.reshape(1,-1)) * learning_rate
 
-for epoch in range(1000):
+file_path = "weights.txt"
+
+# If weights file already created delete the lines below
+for epoch in range(10000):
   for x in range(13):
     img = Image.open(BytesIO(urlIn[x].content))
     img = scaleImg(img, scale)
@@ -118,7 +121,19 @@ weights = []
 for i in range(0,len(weights_input_hidden)):weights.append(weights_input_hidden[i])
 for i in range(0,len(weights_hidden_output)):weights.append(weights_hidden_output[i])
 
-# Get the output ↓
+
+
+with open(file_path, "w") as file:
+    for item in weights:
+      for i in range(len(item)):
+        file.write(str(item[i]) + "\n")
+
+# If weights file already created delete the lines above
+
+weights = []
+with open(file_path, "r") as file:
+    for line in file:
+      weights.append(np.array(eval(line)))
 
 img = scaleImg(Image.open(BytesIO(requests.get(link).content)), scale)
 inputs = []
@@ -136,7 +151,7 @@ for l in range(layers+1):
   for n in range(neuronsL):
     current.append(0)
     for i in range(len(inputs)):
-      current[n]+= inputs[i]*weights[l * neuronsL + n][0]
+      current[n]+= inputs[i]*weights[l * neuronsL + n]
   if(l==layers-1):
     neuronsL = outputN
   inputs = current[:]
